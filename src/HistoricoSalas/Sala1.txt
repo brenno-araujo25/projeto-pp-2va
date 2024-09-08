@@ -1,0 +1,8 @@
+Usuário Lucas entrou na sala.
+Usuário Pedro entrou na sala.
+[Lucas]: oi, Pedro, tudo bem?
+[Pedro]: tudo, cara, e com vc?
+[Lucas]: comigo tudo ok
+Usuário Lucas saiu da sala.
+[Pedro]: vou sair também
+Usuário Pedro saiu da sala.
