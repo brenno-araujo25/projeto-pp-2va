@@ -6,7 +6,7 @@ import java.util.concurrent.*;
 public class ServidorChat {
     private static final int PORTA = 5000;
     private static final int MAX_THREADS = 100;
-    private static final String HISTORICO_DIR = "src/HistoricoSalas"; // Caminho da pasta para armazenar logs
+    private static final String HISTORICO_DIR = "./HistoricoSalas"; // Caminho da pasta para armazenar logs
     // associa o nome da sala a um conjunto de PrintWriter, que envia mensagens para os clientes da sala
     private static final Map<String, Set<PrintWriter>> salasChat = new ConcurrentHashMap<>(); // ConcurrentHashMap garante que as operações sejam thread safe
 

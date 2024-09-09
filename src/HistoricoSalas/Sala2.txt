@@ -1,0 +1,15 @@
+Usuário Brenno2 entrou na sala.
+Usuário Lucas entrou na sala.
+[Lucas]: ok
+[Brenno2]: aoba
+[Lucas]: vamos ver agora
+Usuário Lucas saiu da sala.
+[Brenno2]: foi
+Usuário Brenno2 saiu da sala.
+Usuário Brenno2 entrou na sala.
+Usuário Lucas entrou na sala.
+[Brenno2]: okay
+[Lucas]: ok
+[Brenno2]: hi
+Usuário Brenno2 saiu da sala.
+Usuário Lucas saiu da sala.
