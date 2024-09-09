@@ -36,5 +36,9 @@ public class ClienteChat {
                 e.printStackTrace();
             }
         }).start();
+
+        // fecha o socket e o scanner
+        socket.close();
+        scanner.close();
     }
 }
