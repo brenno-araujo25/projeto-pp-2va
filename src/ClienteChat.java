@@ -5,7 +5,10 @@ import java.util.Scanner;
 public class ClienteChat {
     public static void main(String[] args) throws IOException {
         // Conectar ao servidor local na porta 5000
-        String host = args[0];
+        String host = "localhost";
+        if (args.length > 0) {
+            host = args[0];
+        }
 
         Socket socket = new Socket(host, 5000);
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
