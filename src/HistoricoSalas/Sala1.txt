@@ -8,3 +8,8 @@ Usuário Lucas saiu da sala.
 Usuário Pedro saiu da sala.
 Usuário Pedro entrou na sala.
 Usuário Pedro saiu da sala.
+Usuário PEdro entrou na sala.
+Usuário Brenno entrou na sala.
+[Brenno]: ol�
+[PEdro]: aoba
+Usuário Brenno saiu da sala.
