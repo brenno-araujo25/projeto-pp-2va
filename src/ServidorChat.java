@@ -50,7 +50,7 @@ public class ServidorChat {
 
                 out.println("Bem vindo! Informe seu nome:");
                 nomeCliente = in.readLine();
-                out.println("Bem vindo " + nomeCliente + "! Use /join <nome_sala> para entrar em uma sala.");
+                out.println("Bem vindo " + nomeCliente + "! Use /join <nome_sala> para entrar em uma sala. (Use /help para ver comandos)");
 
                 String mensagem;
                 while ((mensagem = in.readLine()) != null) {
@@ -58,6 +58,8 @@ public class ServidorChat {
                         entrarEmSala(mensagem.substring(6).trim());
                     } else if (mensagem.startsWith("/sair")) {
                         sairDaSala();
+                    } else if (mensagem.startsWith("/help")) {
+                        mostrarComandos();
                     } else {
                         enviarMensagem(mensagem);
                     }
@@ -187,6 +189,16 @@ public class ServidorChat {
                 }
             }
             // Se o arquivo não existir ou estiver vazio, não faz nada
+        }
+
+        //Método para exibir opções de comando
+        private synchronized void mostrarComandos() {
+            out.println("\n- /help (exibe o menu de comandos)");
+            out.println("- /join <nome_sala> (permite entrar em uma sala)");
+            out.println("- /sair (sai de uma sala)");
+            out.println("- /salas (lista as salas existentes no servidor)");
+            out.println("- /usuários (exibe os usuários online dentro de uma sala)");
+            out.println("- @nomeUsuário (envia a mensagem somente para um determinado usuário)\n");
         }
     }
 }
