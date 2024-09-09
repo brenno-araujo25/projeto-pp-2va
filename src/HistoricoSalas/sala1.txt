@@ -1,0 +1,8 @@
+Usuário Matias entrou na sala.
+Usuário Matias saiu da sala.
+Usuário Matias entrou na sala.
+Usuário Matias saiu da sala.
+Usuário matias entrou na sala.
+Usuário matias saiu da sala.
+Usuário matias entrou na sala.
+Usuário matias saiu da sala.

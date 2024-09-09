@@ -7,7 +7,6 @@ public class ServidorChat {
     private static final int PORTA = 5000;
     private static final int MAX_THREADS = 100;
     private static final String HISTORICO_DIR = "./HistoricoSalas"; // Caminho da pasta para armazenar logs
-    // associa o nome da sala a um conjunto de PrintWriter, que envia mensagens para os clientes da sala
     private static final Map<String, Set<PrintWriter>> salasChat = new ConcurrentHashMap<>(); // ConcurrentHashMap garante que as operações sejam thread safe
 
     public static void main(String[] args) throws Exception {
@@ -34,14 +33,17 @@ public class ServidorChat {
         private PrintWriter out;    // envia mensagens ao cliente
         private BufferedReader in;  // lê as mensagens do cliente
         private String sala = "";   // sala que o cliente está
-        private String nomeCliente; //armazena o nome do cliente
+        private String nomeCliente; // armazena o nome do cliente
         private File historicoDaSala;   // arquivo onde as mensagens da sala serão salvas
 
         public Handler(Socket socket) {
             this.socket = socket;
         }
 
-        // método executado quando a thread do cliente é iniciada
+        /** 
+         * Executa o fluxo de comunicação do cliente com o servidor.
+         * Lê o nome do cliente, permite entrar em salas e envia/recebe mensagens.
+         */
         public void run() {
             try {
                 // inicializando os objetos de comunicação com o cliente
@@ -76,8 +78,12 @@ public class ServidorChat {
             }
         }
 
+        /** 
+         * Entra em uma sala de chat. 
+         * Se a sala não existir, cria uma nova.
+         * @param nomeSala O nome da sala em que o cliente deseja entrar
+         */
         private synchronized void entrarEmSala(String nomeSala) {
-            // Chama sairDaSala se o cliente já estiver em uma sala
             if (!sala.isEmpty()) {
                 sairDaSala();
             }
@@ -86,10 +92,9 @@ public class ServidorChat {
             salasChat.putIfAbsent(nomeSala, ConcurrentHashMap.newKeySet());
             salasChat.get(nomeSala).add(out);
 
-            // Define o qrquivo para aramzenar as mensagens da sala
+            // Define o arquivo para armazenar as mensagens da sala
             historicoDaSala = new File(HISTORICO_DIR, sala + ".txt");
 
-            // Verifica se o arquivo existe
             if (!historicoDaSala.exists()) {
                 try {
                     historicoDaSala.createNewFile(); // Cria o arquivo
@@ -108,11 +113,13 @@ public class ServidorChat {
             enviarMensagemParaOutros("Usuário " + nomeCliente + " entrou na sala.");
         }
 
+        /** 
+         * Sai da sala de chat atual, se o cliente estiver em uma.
+         * Remove o cliente da lista de membros da sala.
+         */
         private synchronized void sairDaSala() {
             if (!sala.isEmpty()) {
-                // Envia mensagem de saída para todos na sala, exceto o cliente que acabou de sair
                 enviarMensagemParaOutros("Usuário " + nomeCliente + " saiu da sala.");
-                // Mensagem para o cliente que está saindo
                 out.println("Você saiu da " + sala + ".");
 
                 Set<PrintWriter> membrosSala = salasChat.get(sala);
@@ -128,6 +135,10 @@ public class ServidorChat {
             }
         }
 
+        /** 
+         * Envia uma mensagem para todos os membros da sala, exceto o remetente.
+         * @param mensagem A mensagem a ser enviada
+         */
         private synchronized void enviarMensagem(String mensagem) {
             if (!sala.isEmpty()) {
                 Set<PrintWriter> membrosSala = salasChat.get(sala);
@@ -136,29 +147,32 @@ public class ServidorChat {
                         if (writer != out) { writer.println("[" + nomeCliente + "]: " + mensagem); }
                     }
                 }
-                // Salva a mensagem no arquivo de log da sala
                 salvarMensagem("[" + nomeCliente + "]: " + mensagem);
             } else {
                 out.println("Você não está em uma sala. Use /join <nome_sala> para entrar em uma.");
             }
         }
 
-        // Método para enviar mensagens para todos, exceto o cliente atual
+        /** 
+         * Envia uma mensagem para todos os membros da sala, exceto o remetente.
+         * @param mensagem A mensagem a ser enviada para os outros usuários
+         */
         private synchronized void enviarMensagemParaOutros(String mensagem) {
             if (!sala.isEmpty()) {
                 Set<PrintWriter> membrosSala = salasChat.get(sala);
                 if (membrosSala != null) {
                     for (PrintWriter writer : membrosSala) {
-                        // Envia a mensagem apenas para os outros clientes, não para o remetente
                         if (writer != out) { writer.println(mensagem); }
                     }
                 }
-                // Salva a mensagem no arquivo de log da sala
                 salvarMensagem(mensagem);
             }
         }
 
-        // Método para salvar a mensagem no arquivo de log da sala
+        /** 
+         * Salva a mensagem no arquivo de log da sala.
+         * @param mensagem A mensagem a ser salva no arquivo
+         */
         private synchronized void salvarMensagem(String mensagem) {
             try (PrintWriter logWriter = new PrintWriter(new FileWriter(historicoDaSala, true))) {
                 logWriter.println(mensagem);
@@ -167,13 +181,14 @@ public class ServidorChat {
             }
         }
 
-        // Método para carregar o histórico de mensagens da sala
+        /** 
+         * Carrega e exibe o histórico de mensagens da sala para o cliente que acabou de entrar.
+         */
         private synchronized void carregarHistorico() {
-            // Verifica se o arquivo existe e se tem conteúdo
             if (historicoDaSala.exists() && historicoDaSala.length() > 0) {
                 try (BufferedReader br = new BufferedReader(new FileReader(historicoDaSala))) {
                     String linha;
-                    boolean temConteudo = false; // Verifica se o arquivo tem alguma linha
+                    boolean temConteudo = false;
                     while ((linha = br.readLine()) != null) {
                         if (!temConteudo) {
                             out.println("\n--- Histórico da sala ---");
@@ -188,10 +203,11 @@ public class ServidorChat {
                     e.printStackTrace();
                 }
             }
-            // Se o arquivo não existir ou estiver vazio, não faz nada
         }
 
-        //Método para exibir opções de comando
+        /** 
+         * Exibe a lista de comandos disponíveis para o cliente.
+         */
         private synchronized void mostrarComandos() {
             out.println("\n- /help (exibe o menu de comandos)");
             out.println("- /join <nome_sala> (permite entrar em uma sala)");
