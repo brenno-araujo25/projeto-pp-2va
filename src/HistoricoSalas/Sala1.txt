@@ -6,3 +6,5 @@ Usuário Pedro entrou na sala.
 Usuário Lucas saiu da sala.
 [Pedro]: vou sair também
 Usuário Pedro saiu da sala.
+Usuário Pedro entrou na sala.
+Usuário Pedro saiu da sala.

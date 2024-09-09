@@ -13,3 +13,12 @@ Usuário Lucas entrou na sala.
 [Brenno2]: hi
 Usuário Brenno2 saiu da sala.
 Usuário Lucas saiu da sala.
+Usuário Pedro entrou na sala.
+Usuário brenno entrou na sala.
+[Pedro]: opa
+[brenno]: hi
+[Pedro]: tranquilo?
+[brenno]: sim
+Usuário Pedro saiu da sala.
+[brenno]: skdsdhvbd
+Usuário brenno saiu da sala.
