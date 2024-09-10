@@ -31,6 +31,7 @@ public class ClienteChat {
                 if (mensagem.equalsIgnoreCase("/desconectar")) {
                     try {
                         socket.close();
+                        scanner.close();
                     } catch (IOException e) {
                         System.out.println(ANSI_RED + "Erro ao fechar a conexão: " + e.getMessage() + ANSI_RESET);
                     }
