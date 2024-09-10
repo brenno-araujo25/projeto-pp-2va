@@ -32,14 +32,14 @@ public class ClienteChat {
                 // Exibir o comando enviado no console do cliente
                 System.out.println(ANSI_YELLOW + "[Você]: " + ANSI_RESET + mensagem);
                 
-                if (mensagem.equalsIgnoreCase("/sair")) {
+                if (mensagem.equalsIgnoreCase("/desconectar")) {
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        System.out.println(ANSI_RED + "Erro ao fechar a conexão: " + e.getMessage() + ANSI_RESET);
+                    }
                     break;
                 }
-            }
-            try {
-                socket.close();
-            } catch (IOException e) {
-                System.out.println(ANSI_RED + "Erro ao fechar a conexão: " + e.getMessage() + ANSI_RESET);
             }
         });
 
