@@ -27,11 +27,7 @@ public class ClienteChat {
             Scanner scanner = new Scanner(System.in);
             while (true) {
                 String mensagem = scanner.nextLine();
-                out.println(mensagem);
 
-                // Exibir o comando enviado no console do cliente
-                System.out.println(ANSI_YELLOW + "[Você]: " + ANSI_RESET + mensagem);
-                
                 if (mensagem.equalsIgnoreCase("/desconectar")) {
                     try {
                         socket.close();
@@ -40,6 +36,11 @@ public class ClienteChat {
                     }
                     break;
                 }
+
+                out.println(mensagem);
+
+                // Exibir o comando enviado no console do cliente
+                System.out.println(ANSI_YELLOW + "[Você]: " + ANSI_RESET + mensagem);
             }
         });
 

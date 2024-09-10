@@ -52,7 +52,7 @@ public class ServidorChat {
 
                 out.println("Bem vindo! Informe seu nome:");
                 nomeCliente = in.readLine();
-                out.println("Bem vindo " + nomeCliente + "! Use /join <nome_sala> para entrar em uma sala. (Use /help para ver comandos)");
+                out.println("Bem vindo, " + nomeCliente + "! Use /join <nome_sala> para entrar em uma sala. (Use /help para ver comandos)");
 
                 String mensagem;
                 while ((mensagem = in.readLine()) != null) {
@@ -212,6 +212,7 @@ public class ServidorChat {
             out.println("\n- /help (exibe o menu de comandos)");
             out.println("- /join <nome_sala> (permite entrar em uma sala)");
             out.println("- /sair (sai de uma sala)");
+            out.println("- /desconectar (sai do servidor)");
             out.println("- /salas (lista as salas existentes no servidor)");
             out.println("- /usuários (exibe os usuários online dentro de uma sala)");
             out.println("- @nomeUsuário (envia a mensagem somente para um determinado usuário)\n");
