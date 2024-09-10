@@ -39,9 +39,6 @@ public class ClienteChat {
                 }
 
                 out.println(mensagem);
-
-                // Exibir o comando enviado no console do cliente
-                System.out.println(ANSI_YELLOW + "[Você]: " + ANSI_RESET + mensagem);
             }
         });
 
