@@ -1,0 +1,23 @@
+Usuário Matias entrou na sala.
+[Matias]: oi
+Usuário Arnaldo entrou na sala.
+[Arnaldo]: iae
+[Matias]: quanto tempo amigo
+[Arnaldo]: sim
+[Matias]: como vai a sofia?
+[Arnaldo]: vai bem
+Usuário Matias saiu da sala.
+Usuário Arnaldo saiu da sala.
+Usuário João entrou na sala.
+Usuário Matias entrou na sala.
+[Matias]: oi
+[João]: como vai??
+[Matias]: to bem manooo
+[João]: massa cara
+[João]: como ta a esposa?
+[Matias]: ela morreu faz 2 anos
+[João]: meus pesames
+[João]: foi mal
+[Matias]: tudo bem
+[Matias]: pera ai, vou ver se tem alguem na sala 1
+Usuário Matias saiu da sala.

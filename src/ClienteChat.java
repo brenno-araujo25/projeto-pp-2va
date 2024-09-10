@@ -3,38 +3,66 @@ import java.net.*;
 import java.util.Scanner;
 
 public class ClienteChat {
+
+    // Códigos ANSI para cores
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_RED = "\u001B[31m";     // Erros ou mensagens importantes
+    private static final String ANSI_GREEN = "\u001B[32m";   // Mensagens do sistema
+    private static final String ANSI_YELLOW = "\u001B[33m";  // Comandos
+    private static final String ANSI_BLUE = "\u001B[34m";    // Mensagens de outros usuários
+
     public static void main(String[] args) throws IOException {
-        // Conectar ao servidor local na porta 5000
-        String host = "localhost";
+        String host = "localhost";  // Conectar ao servidor local
         if (args.length > 0) {
             host = args[0];
         }
 
+        // Conectar ao servidor na porta 5000
         Socket socket = new Socket(host, 5000);
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        Scanner scanner = new Scanner(System.in);
 
-        // Thread para enviar mensagens ao servidor
-        new Thread(() -> {
-            String userInput;
+        // Thread para enviar mensagens para o servidor
+        Thread enviarThread = new Thread(() -> {
+            Scanner scanner = new Scanner(System.in);
             while (true) {
-                userInput = scanner.nextLine();
-                out.println(userInput);  // Envia a mensagem digitada para o servidor
+                String mensagem = scanner.nextLine();
+
+                if (mensagem.equalsIgnoreCase("/desconectar")) {
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        System.out.println(ANSI_RED + "Erro ao fechar a conexão: " + e.getMessage() + ANSI_RESET);
+                    }
+                    break;
+                }
+
+                out.println(mensagem);
+
+                // Exibir o comando enviado no console do cliente
+                System.out.println(ANSI_YELLOW + "[Você]: " + ANSI_RESET + mensagem);
             }
-        }).start();
+        });
 
         // Thread para receber mensagens do servidor
-        new Thread(() -> {
-            String serverMessage;
+        Thread receberThread = new Thread(() -> {
             try {
-                while ((serverMessage = in.readLine()) != null) {
-                    System.out.println(serverMessage);  // Exibe as mensagens recebidas do servidor
+                String mensagem;
+                while ((mensagem = in.readLine()) != null) {
+                    if (mensagem.contains("[Sistema]")) {
+                        System.out.println(ANSI_GREEN + mensagem + ANSI_RESET);
+                    } else if (mensagem.contains("[Erro]")) {
+                        System.out.println(ANSI_RED + mensagem + ANSI_RESET);
+                    } else {
+                        System.out.println(ANSI_BLUE + mensagem + ANSI_RESET);
+                    }
                 }
             } catch (IOException e) {
-                System.out.println("Erro ao ler mensagem do servidor.");
-                e.printStackTrace();
+                System.out.println(ANSI_RED + "Erro na conexão: " + e.getMessage() + ANSI_RESET);
             }
-        }).start();
+        });
+
+        enviarThread.start();
+        receberThread.start();
     }
 }
