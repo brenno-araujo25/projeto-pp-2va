@@ -29,10 +29,18 @@ public class ClienteChat {
                 String mensagem = scanner.nextLine();
 
                 if (mensagem.equalsIgnoreCase("/desconectar")) {
+                    out.println("/desconectar"); // Notifica o servidor da desconexão
+                    out.flush();
                     try {
-                        socket.close();
-                        scanner.close();
-                    } catch (IOException e) {
+                        Thread.sleep(150); // Aguarda para garantir que a mensagem de desconexão foi enviada
+
+                        if (socket != null && !socket.isClosed()) {
+                            socket.close(); // Fecha o socket após a mensagem ser enviada
+                        }
+                        if (scanner != null) {
+                            scanner.close(); // Fecha o scanner
+                        }
+                    } catch (IOException | InterruptedException e) {
                         System.out.println(ANSI_RED + "Erro ao fechar a conexão: " + e.getMessage() + ANSI_RESET);
                     }
                     break;
@@ -47,7 +55,10 @@ public class ClienteChat {
             try {
                 String mensagem;
                 while ((mensagem = in.readLine()) != null) {
-                    if (mensagem.contains("[Sistema]")) {
+                    if (mensagem.contains("[Sistema] Desconectando do servidor...")) {
+                        System.out.println(ANSI_GREEN + "Desconectado do servidor com sucesso." + ANSI_RESET);
+                        break; // Sai do loop e permite que a thread seja finalizada
+                    } else if (mensagem.contains("[Sistema]")) {
                         System.out.println(ANSI_GREEN + mensagem + ANSI_RESET);
                     } else if (mensagem.contains("[Erro]")) {
                         System.out.println(ANSI_RED + mensagem + ANSI_RESET);
@@ -57,6 +68,14 @@ public class ClienteChat {
                 }
             } catch (IOException e) {
                 System.out.println(ANSI_RED + "Erro na conexão: " + e.getMessage() + ANSI_RESET);
+            } finally {
+                try {
+                    if (in != null) {
+                        in.close();
+                    }
+                } catch (IOException e) {
+                    System.out.println(ANSI_RED + "Erro ao fechar a conexão: " + e.getMessage() + ANSI_RESET);
+                }
             }
         });
 

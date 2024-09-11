@@ -2,3 +2,4 @@ ServidorChat.class
 ServidorChat$Handler.class
 ClienteChat.class
 ../HistoricoSalas
+./src/Cliente2Chat.java

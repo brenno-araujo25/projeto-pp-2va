@@ -40,7 +40,7 @@ public class ServidorChat {
             this.socket = socket;
         }
 
-        /** 
+        /**
          * Executa o fluxo de comunicação do cliente com o servidor.
          * Lê o nome do cliente, permite entrar em salas e envia/recebe mensagens.
          */
@@ -62,7 +62,9 @@ public class ServidorChat {
                         sairDaSala();
                     } else if (mensagem.startsWith("/help")) {
                         mostrarComandos();
-                    } else {
+                    } else if (mensagem.equalsIgnoreCase("/desconectar")){
+                        desconectarCliente();
+                    } else{
                         enviarMensagem(mensagem);
                     }
                 }
@@ -78,8 +80,8 @@ public class ServidorChat {
             }
         }
 
-        /** 
-         * Entra em uma sala de chat. 
+        /**
+         * Entra em uma sala de chat.
          * Se a sala não existir, cria uma nova.
          * @param nomeSala O nome da sala em que o cliente deseja entrar
          */
@@ -113,7 +115,7 @@ public class ServidorChat {
             enviarMensagemParaOutros("Usuário " + nomeCliente + " entrou na sala.");
         }
 
-        /** 
+        /**
          * Sai da sala de chat atual, se o cliente estiver em uma.
          * Remove o cliente da lista de membros da sala.
          */
@@ -135,7 +137,7 @@ public class ServidorChat {
             }
         }
 
-        /** 
+        /**
          * Envia uma mensagem para todos os membros da sala, exceto o remetente.
          * @param mensagem A mensagem a ser enviada
          */
@@ -153,7 +155,7 @@ public class ServidorChat {
             }
         }
 
-        /** 
+        /**
          * Envia uma mensagem para todos os membros da sala, exceto o remetente.
          * @param mensagem A mensagem a ser enviada para os outros usuários
          */
@@ -169,7 +171,7 @@ public class ServidorChat {
             }
         }
 
-        /** 
+        /**
          * Salva a mensagem no arquivo de log da sala.
          * @param mensagem A mensagem a ser salva no arquivo
          */
@@ -181,7 +183,7 @@ public class ServidorChat {
             }
         }
 
-        /** 
+        /**
          * Carrega e exibe o histórico de mensagens da sala para o cliente que acabou de entrar.
          */
         private synchronized void carregarHistorico() {
@@ -202,6 +204,40 @@ public class ServidorChat {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
+        }
+
+        private synchronized void desconectarCliente() throws IOException {
+            final String ANSI_RESET = "\u001B[0m";
+            final String ANSI_RED = "\u001B[31m";
+
+            try {
+                if(!sala.isEmpty()) { // Verifica se o usuário está dentro de uma sala
+                    sairDaSala(); // Remove o cliente da sala
+                }
+
+                if (out != null) {
+                    out.println("[Sistema] Desconectando do servidor..."); // Notifica o cliente da desconexão
+                    out.flush();
+                    try {
+                        Thread.sleep(100); // Aguarda para garantir a entrega da mensagem
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    out.close(); // Fecha o PrintWriter
+                }
+
+                if (in != null) {
+                    in.close();
+                }
+
+                if (socket != null && !socket.isClosed()) {
+                    socket.close(); // Fecha o socket do cliente, se ainda estiver aberto
+                }
+
+            } catch (IOException e) {
+                System.out.println(ANSI_RED + "Erro ao fechar a conexão: " + e.getMessage() + ANSI_RESET);
+                e.printStackTrace();
             }
         }
 
