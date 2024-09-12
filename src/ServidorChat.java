@@ -64,7 +64,9 @@ public class ServidorChat {
                         mostrarComandos();
                     } else if (mensagem.equalsIgnoreCase("/desconectar")){
                         desconectarCliente();
-                    } else{
+                    }else if (mensagem.equalsIgnoreCase("/salas")){
+                        listarSalas();
+                    }else{
                         enviarMensagem(mensagem);
                     }
                 }
@@ -239,6 +241,34 @@ public class ServidorChat {
                 System.out.println(ANSI_RED + "Erro ao fechar a conexão: " + e.getMessage() + ANSI_RESET);
                 e.printStackTrace();
             }
+        }
+
+        private synchronized void listarSalas() throws IOException {
+            
+            //Criar o caminho para pasta de historicoSalas
+            File caminhoHistorico = new File(HISTORICO_DIR);
+            //Verificar se o caminho existe 
+            if(caminhoHistorico.exists() && caminhoHistorico.isDirectory()){
+                File[] historicos = caminhoHistorico.listFiles((hist,name) -> name.endsWith(".txt")); 
+                System.out.println("-------------------------");
+                System.out.println("Listando Salas!");
+                if (historicos !=null && historicos.length > 0){
+                    System.out.println("-------------------------");
+                    System.out.println("Salas existentes: ");
+                    for(File historico: historicos){
+                        //Tirar o .txt
+                        String nome = historico.getName().replace(".txt","");
+                        System.out.println("- " + nome);
+                    }
+                } else {
+                    System.out.println("Nunhuma sala existente!");
+                }
+                System.out.println("-------------------------");
+            }else{
+                System.out.println("Caminho para HistoricoSalas invalido!");
+            }
+
+           
         }
 
         /** 

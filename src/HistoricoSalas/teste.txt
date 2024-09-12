@@ -1,0 +1,18 @@
+Usuário Cas entrou na sala.
+Usuário Camis entrou na sala.
+[Camis]: Oi tudo bem ?
+[Cas]: Tudo sim e com vo��?
+Usuário Cassia entrou na sala.
+[Cassia]: oiee
+[Cassia]: tudo bem?
+[Camis]: Tudo simmm
+[Cas]: tamo indo
+[Cassia]: � 
+[Cassia]: tchau
+[Camis]: bye
+[Cas]: tchauzinho
+Usuário Cas saiu da sala.
+Usuário Camis saiu da sala.
+Usuário Cassia saiu da sala.
+Usuário Camis entrou na sala.
+Usuário Camis saiu da sala.

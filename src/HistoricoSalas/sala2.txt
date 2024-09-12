@@ -21,3 +21,5 @@ Usuário Matias entrou na sala.
 [Matias]: tudo bem
 [Matias]: pera ai, vou ver se tem alguem na sala 1
 Usuário Matias saiu da sala.
+Usuário Camis entrou na sala.
+Usuário Camis saiu da sala.
