@@ -258,22 +258,22 @@ public class ServidorChat {
             //Verificar se o caminho existe 
             if(caminhoHistorico.exists() && caminhoHistorico.isDirectory()){
                 File[] historicos = caminhoHistorico.listFiles((hist,name) -> name.endsWith(".txt")); 
-                System.out.println("-------------------------");
-                System.out.println("Listando Salas!");
+                out.println("\n-------------------------");
+                out.println("Listando Salas!");
                 if (historicos !=null && historicos.length > 0){
-                    System.out.println("-------------------------");
-                    System.out.println("Salas existentes: ");
+                    out.println("-------------------------");
+                    out.println("Salas existentes: ");
                     for(File historico: historicos){
                         //Tirar o .txt
                         String nome = historico.getName().replace(".txt","");
-                        System.out.println("- " + nome);
+                        out.println("- " + nome);
                     }
                 } else {
-                    System.out.println("Nunhuma sala existente!");
+                    out.println("Nunhuma sala existente!");
                 }
-                System.out.println("-------------------------");
+                out.println("-------------------------");
             }else{
-                System.out.println("Caminho para HistoricoSalas invalido!");
+                out.println("Caminho para HistoricoSalas invalido!");
             }
 
            
