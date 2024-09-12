@@ -66,7 +66,7 @@ public class ServidorChat {
                         mostrarComandos();
                     } else if (mensagem.equalsIgnoreCase("/desconectar")){
                         desconectarCliente();
-                    } else if (mensagem.contains("/pesquisar")) {
+                    } else if (mensagem.startsWith("/pesquisar")) {
                         pesquisarMensagem(mensagem.substring(11).trim());
                     } else {
                         enviarMensagem(mensagem);
