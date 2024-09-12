@@ -2,6 +2,8 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class ServidorChat {
     private static final int PORTA = 5000;
@@ -144,12 +146,15 @@ public class ServidorChat {
         private synchronized void enviarMensagem(String mensagem) {
             if (!sala.isEmpty()) {
                 Set<PrintWriter> membrosSala = salasChat.get(sala);
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+                String dataHora = LocalDateTime.now().format(formatter);
+                
                 if (membrosSala != null) {
                     for (PrintWriter writer : membrosSala) {
-                        if (writer != out) { writer.println("[" + nomeCliente + "]: " + mensagem); }
+                        if (writer != out) { writer.println("[" + dataHora + "] " + nomeCliente + ": " + mensagem); }
                     }
                 }
-                salvarMensagem("[" + nomeCliente + "]: " + mensagem);
+                salvarMensagem("[" + dataHora + "] " + nomeCliente + ": " + mensagem);
             } else {
                 out.println("Você não está em uma sala. Use /join <nome_sala> para entrar em uma.");
             }
@@ -162,12 +167,15 @@ public class ServidorChat {
         private synchronized void enviarMensagemParaOutros(String mensagem) {
             if (!sala.isEmpty()) {
                 Set<PrintWriter> membrosSala = salasChat.get(sala);
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+                String dataHora = LocalDateTime.now().format(formatter);
+                
                 if (membrosSala != null) {
                     for (PrintWriter writer : membrosSala) {
                         if (writer != out) { writer.println(mensagem); }
                     }
                 }
-                salvarMensagem(mensagem);
+                salvarMensagem("[" + dataHora + "] " + mensagem);
             }
         }
 
