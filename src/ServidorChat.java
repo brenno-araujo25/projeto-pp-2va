@@ -66,7 +66,9 @@ public class ServidorChat {
                         mostrarComandos();
                     } else if (mensagem.equalsIgnoreCase("/desconectar")){
                         desconectarCliente();
-                    } else{
+                    } else if (mensagem.contains("/pesquisar")) {
+                        pesquisarMensagem(mensagem.substring(11).trim());
+                    } else {
                         enviarMensagem(mensagem);
                     }
                 }
@@ -148,10 +150,12 @@ public class ServidorChat {
                 Set<PrintWriter> membrosSala = salasChat.get(sala);
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
                 String dataHora = LocalDateTime.now().format(formatter);
-                
+
                 if (membrosSala != null) {
                     for (PrintWriter writer : membrosSala) {
-                        if (writer != out) { writer.println("[" + dataHora + "] " + nomeCliente + ": " + mensagem); }
+                        if (writer != out) {
+                            writer.println("[" + dataHora + "] " + nomeCliente + ": " + mensagem);
+                        }
                     }
                 }
                 salvarMensagem("[" + dataHora + "] " + nomeCliente + ": " + mensagem);
@@ -249,7 +253,36 @@ public class ServidorChat {
             }
         }
 
-        /** 
+        /**
+         * pesquisa uma string no histórico de mensagens da sala
+         * @param string a ser pesquisada
+         */
+        private synchronized void pesquisarMensagem(String string) {
+            // Valida se a sala não está vazia
+            if (!sala.isEmpty()) {
+                // Valida se o histórico da sala existe
+                if (historicoDaSala.exists()) {
+                    try (BufferedReader br = new BufferedReader(new FileReader(historicoDaSala))) {
+                        String linha;
+                        out.println("\n--- Resultados da Pesquisa ---");
+                        while ((linha = br.readLine()) != null) {
+                            if (linha.contains(string)) {
+                                out.println(linha);
+                            }
+                        }
+                        out.println("------------------------------");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    out.println("Histórico de mensagens não encontrado.");
+                }
+            } else {
+                out.println("Você precisa estar em uma sala para pesquisar a mensagem.");
+            }
+        }
+
+        /**
          * Exibe a lista de comandos disponíveis para o cliente.
          */
         private synchronized void mostrarComandos() {
@@ -259,6 +292,7 @@ public class ServidorChat {
             out.println("- /desconectar (sai do servidor)");
             out.println("- /salas (lista as salas existentes no servidor)");
             out.println("- /usuários (exibe os usuários online dentro de uma sala)");
+            out.println("- /pesquisar <string> (exibe as mensagens correspondentes na sala)");
             out.println("- @nomeUsuário (envia a mensagem somente para um determinado usuário)\n");
         }
     }
