@@ -1,8 +1,15 @@
-Usuário Matias entrou na sala.
-Usuário Matias saiu da sala.
-Usuário Matias entrou na sala.
-Usuário Matias saiu da sala.
-Usuário matias entrou na sala.
-Usuário matias saiu da sala.
-Usuário matias entrou na sala.
-Usuário matias saiu da sala.
+Usuário Lucas entrou na sala.
+Usuário Pedro entrou na sala.
+[Lucas]: oi, Pedro, tudo bem?
+[Pedro]: tudo, cara, e com vc?
+[Lucas]: comigo tudo ok
+Usuário Lucas saiu da sala.
+[Pedro]: vou sair também
+Usuário Pedro saiu da sala.
+Usuário Pedro entrou na sala.
+Usuário Pedro saiu da sala.
+Usuário PEdro entrou na sala.
+Usuário Brenno entrou na sala.
+[Brenno]: ol�
+[PEdro]: aoba
+Usuário Brenno saiu da sala.
