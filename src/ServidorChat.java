@@ -65,11 +65,15 @@ public class ServidorChat {
                         sairDaSala();
                     } else if (mensagem.startsWith("/help")) {
                         mostrarComandos();
-                    } else if (mensagem.equalsIgnoreCase("/desconectar")){
+                    } else if (mensagem.equalsIgnoreCase("/desconectar")) {
                         desconectarCliente();
-                    }else if (mensagem.equalsIgnoreCase("/salas")){
+                    } else if (mensagem.equalsIgnoreCase("/salas")) {
                         listarSalas();
-                    }else{
+                    } else if (mensagem.startsWith("@")){
+                        enviarMensagemPrivada(mensagem);
+                    } else if (mensagem.startsWith("/pesquisar ")) {
+                        pesquisarMensagem(mensagem.substring(11).trim());
+                    } else {
                         enviarMensagem(mensagem);
                     }
                 }
@@ -156,7 +160,9 @@ public class ServidorChat {
                 
                 if (membrosSala != null) {
                     for (PrintWriter writer : membrosSala) {
-                        if (writer != out) { writer.println("[" + dataHora + "] " + nomeCliente + ": " + mensagem); }
+                        if (writer != out) {
+                            writer.println("[" + dataHora + "] " + nomeCliente + ": " + mensagem);
+                        }
                     }
                 }
                 salvarMensagem("[" + dataHora + "] " + nomeCliente + ": " + mensagem);
@@ -197,7 +203,7 @@ public class ServidorChat {
         }
 
         /**
-         * Carrega e exibe o histórico de mensagens da sala para o cliente que acabou de entrar.
+         * Carrega e exibe o histórico de mensagens da sala para o usuário que acabou de entrar.
          */
         private synchronized void carregarHistorico() {
             if (historicoDaSala.exists() && historicoDaSala.length() > 0) {
@@ -206,13 +212,13 @@ public class ServidorChat {
                     boolean temConteudo = false;
                     while ((linha = br.readLine()) != null) {
                         if (!temConteudo) {
-                            out.println("\n--- Histórico da sala ---");
+                            out.println("\n---------- Histórico da sala ----------");
                             temConteudo = true;
                         }
                         out.println(linha);
                     }
                     if (temConteudo) {
-                        out.println("-------------------------");
+                        out.println("---------------------------------------");
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -220,6 +226,7 @@ public class ServidorChat {
             }
         }
 
+        // Método para desconectar o usuário
         private synchronized void desconectarCliente() throws IOException {
             try {
                 if(!sala.isEmpty()) { // Verifica se o usuário está dentro de uma sala
@@ -248,6 +255,7 @@ public class ServidorChat {
             }
         }
 
+        //Método para listar as salas existentes no servidor
         private synchronized void listarSalas() throws IOException {
             //Criar o caminho para pasta de historicoSalas
             File caminhoHistorico = new File(HISTORICO_DIR);
@@ -265,7 +273,7 @@ public class ServidorChat {
                         out.println("- " + nome);
                     }
                 } else {
-                    out.println("Nunhuma sala existente!");
+                    out.println("Nenhuma sala existente no servidor.");
                 }
                 out.println("-------------------------");
             }else{
@@ -273,17 +281,70 @@ public class ServidorChat {
             }
         }
 
+        private synchronized void enviarMensagemPrivada(String mensagem) {
+            if (!sala.isEmpty()) {
+
+            } else {
+                out.println("Você não está em uma sala. Use /join <nome_sala> para entrar em uma.");
+            }
+        }
+
+        /**
+         /**
+         * pesquisa uma string no histórico de mensagens da sala
+         * @param string a ser pesquisada
+         */
+        private synchronized void pesquisarMensagem(String string) {
+            // Valida se a sala não está vazia
+            if (!sala.isEmpty()) {
+
+                // Verifica se a string a ser pesquisada foi fornecida
+                if (string == null || string.trim().isEmpty()) {
+                    out.println("Digite uma mensagem a ser pesquisada.");
+                    return; // Sai do método se a string estiver vazia
+                }
+
+                // Valida se o histórico da sala existe
+                if (historicoDaSala.exists()) {
+                    try (BufferedReader br = new BufferedReader(new FileReader(historicoDaSala))) {
+                        String linha;
+                        out.println("\n--- Resultados da Pesquisa ---");
+                        boolean encontrou = false; // Boolean para checar se foram encontrados resultados
+                        while ((linha = br.readLine()) != null) {
+                            if (linha.contains(string)) {
+                                out.println(linha);
+                                encontrou = true;
+                            }
+                        }
+                        if (encontrou == false) {
+                            out.println("Nenhum resultado encontrado para: " + string);
+                        }
+                        out.println("------------------------------");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    out.println("Histórico de mensagens não encontrado.");
+                }
+            } else {
+                out.println("Você precisa estar em uma sala para pesquisar uma mensagem.");
+            }
+        }
+
+
         /** 
-         * Exibe a lista de comandos disponíveis para o cliente.
+         * Exibe a lista de comandos disponíveis para o usuário.
          */
         private synchronized void mostrarComandos() {
+            out.println("Comandos disponíveis:");
             out.println("- /help (exibe o menu de comandos)");
             out.println("- /join <nome_sala> (permite entrar em uma sala)");
             out.println("- /sair (sai de uma sala)");
             out.println("- /desconectar (sai do servidor)");
             out.println("- /salas (lista as salas existentes no servidor)");
             out.println("- /usuários (exibe os usuários online dentro de uma sala)");
-            out.println("- @nomeUsuário (envia a mensagem somente para um determinado usuário)\n");
+            out.println("- /pesquisar <mensagem> (exibe as mensagens correspondentes na sala)");
+            out.println("- @nomeUsuário <mensagem> (envia a mensagem somente para um determinado usuário)\n");
         }
     }
 }
