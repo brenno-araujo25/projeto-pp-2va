@@ -54,6 +54,7 @@ public class ServidorChat {
 
                 out.println("Bem vindo! Informe seu nome:");
                 nomeCliente = in.readLine();
+                System.out.println("Usuário " + nomeCliente + " conectado no servidor.");
                 out.println("Bem vindo, " + nomeCliente + "! Use /join <nome_sala> para entrar em uma sala. (Use /help para ver comandos)");
 
                 String mensagem;
@@ -73,11 +74,11 @@ public class ServidorChat {
                     }
                 }
             } catch (IOException e) {
-                System.out.println("ERRO NO CLIENTE: " + e.getMessage());
+                System.out.println("Usuário " + nomeCliente + " desconectado do servidor.");
             } finally {
                 sairDaSala();
                 try {
-                    socket.close();
+                    if (!socket.isClosed()) {socket.close();}
                 } catch (IOException e) {
                     System.out.println("ERRO AO FECHAR O SOCKET: " + e.getMessage());
                 }
@@ -117,6 +118,7 @@ public class ServidorChat {
 
             // Envia mensagem de entrada para todos na sala, exceto o cliente que acabou de entrar
             enviarMensagemParaOutros("Usuário " + nomeCliente + " entrou na sala.");
+            System.out.println("Usuário " + nomeCliente + " entrou na " + nomeSala + ".");
         }
 
         /**
@@ -127,6 +129,7 @@ public class ServidorChat {
             if (!sala.isEmpty()) {
                 enviarMensagemParaOutros("Usuário " + nomeCliente + " saiu da sala.");
                 out.println("Você saiu da " + sala + ".");
+                System.out.println("Usuário " + nomeCliente + " saiu da " + sala + ".");
 
                 Set<PrintWriter> membrosSala = salasChat.get(sala);
                 if (membrosSala != null) {
@@ -218,15 +221,12 @@ public class ServidorChat {
         }
 
         private synchronized void desconectarCliente() throws IOException {
-            final String ANSI_RESET = "\u001B[0m";
-            final String ANSI_RED = "\u001B[31m";
-
             try {
                 if(!sala.isEmpty()) { // Verifica se o usuário está dentro de uma sala
                     sairDaSala(); // Remove o cliente da sala
                 }
 
-                if (out != null) {
+                if (out != null && in != null) {
                     out.println("[Sistema] Desconectando do servidor..."); // Notifica o cliente da desconexão
                     out.flush();
                     try {
@@ -235,10 +235,7 @@ public class ServidorChat {
                         throw new RuntimeException(e);
                     }
                     out.close(); // Fecha o PrintWriter
-                }
-
-                if (in != null) {
-                    in.close();
+                    in.close(); // Fecha o Buffered Reader
                 }
 
                 if (socket != null && !socket.isClosed()) {
@@ -246,13 +243,12 @@ public class ServidorChat {
                 }
 
             } catch (IOException e) {
-                System.out.println(ANSI_RED + "Erro ao fechar a conexão: " + e.getMessage() + ANSI_RESET);
+                System.out.println("Erro ao fechar a conexão: " + e.getMessage());
                 e.printStackTrace();
             }
         }
 
         private synchronized void listarSalas() throws IOException {
-            
             //Criar o caminho para pasta de historicoSalas
             File caminhoHistorico = new File(HISTORICO_DIR);
             //Verificar se o caminho existe 
@@ -275,15 +271,13 @@ public class ServidorChat {
             }else{
                 out.println("Caminho para HistoricoSalas invalido!");
             }
-
-           
         }
 
         /** 
          * Exibe a lista de comandos disponíveis para o cliente.
          */
         private synchronized void mostrarComandos() {
-            out.println("\n- /help (exibe o menu de comandos)");
+            out.println("- /help (exibe o menu de comandos)");
             out.println("- /join <nome_sala> (permite entrar em uma sala)");
             out.println("- /sair (sai de uma sala)");
             out.println("- /desconectar (sai do servidor)");
