@@ -245,9 +245,13 @@ public class ServidorChat {
             if (index != -1) {
                 String destinatario = mensagem.substring(1, index).trim();
                 String mensagemPrivada = mensagem.substring(index + 1).trim();
+
+                // obtém os usuários na sala atual do cliente
+                Set<PrintWriter> clientesNaSala = salasChat.get(sala); 
+                
                 boolean encontrado = false;
                 for (Map.Entry<PrintWriter, String> entry : usuarios.entrySet()) {
-                    if (entry.getValue().equals(destinatario)) {
+                    if (entry.getValue().equals(destinatario) && clientesNaSala.contains(entry.getKey())) { // checa se usuário é o destinatário e se está na mesma sala
                         PrintWriter destinatarioOut = entry.getKey();
                         destinatarioOut.println("Mensagem privada de " + nomeCliente + ": " + mensagemPrivada);
                         encontrado = true;

@@ -1,0 +1,7 @@
+[14-09-2024 13:23] Usuário Paulo entrou na sala.
+[14-09-2024 13:24] Paulo: /usuarios
+[14-09-2024 13:24] Usuário Pedro entrou na sala.
+[14-09-2024 13:24] Usuário Brenno entrou na sala.
+[14-09-2024 13:25] Usuário Pedro saiu da sala.
+[14-09-2024 13:35] Usuário Brenno saiu da sala.
+[14-09-2024 13:35] Usuário Paulo saiu da sala.
