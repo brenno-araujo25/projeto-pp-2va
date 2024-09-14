@@ -6,3 +6,7 @@ Usuário matias entrou na sala.
 Usuário matias saiu da sala.
 Usuário matias entrou na sala.
 Usuário matias saiu da sala.
+[14-09-2024 13:25] Usuário Pedro entrou na sala.
+[14-09-2024 13:35] Usuário Pedro saiu da sala.
+[14-09-2024 13:42] Usuário paulo entrou na sala.
+[14-09-2024 13:46] Usuário paulo saiu da sala.

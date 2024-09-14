@@ -23,3 +23,10 @@ Usuário Matias entrou na sala.
 Usuário Matias saiu da sala.
 Usuário Camis entrou na sala.
 Usuário Camis saiu da sala.
+[14-09-2024 13:42] Usuário pedro entrou na sala.
+[14-09-2024 13:42] Usuário brenno entrou na sala.
+[14-09-2024 13:42] brenno: ola
+[14-09-2024 13:42] pedro: hi
+[14-09-2024 13:46] Usuário paulo entrou na sala.
+[14-09-2024 13:46] pedro: okay
+[14-09-2024 13:46] pedro: ta funcionando
