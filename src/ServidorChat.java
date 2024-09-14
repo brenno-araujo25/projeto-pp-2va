@@ -63,8 +63,10 @@ public class ServidorChat {
                 System.out.println("Usuário " + nomeCliente + " conectado no servidor.");
                 out.println("Bem vindo, " + nomeCliente + "! Use /join <nome_sala> para entrar em uma sala. (Use /help para ver comandos)");
 
-                // Adiciona o usuário ao mapa de usuários
-                usuarios.put(out, nomeCliente);
+                // Adiciona o cliente ao mapa de usuários
+                synchronized (usuarios) {
+                    usuarios.put(out, nomeCliente);
+                }
 
                 String mensagem;
                 while ((mensagem = in.readLine()) != null) {
@@ -82,6 +84,8 @@ public class ServidorChat {
                         enviarMensagemPrivada(mensagem);
                     } else if (mensagem.startsWith("/pesquisar ")) {
                         pesquisarMensagem(mensagem.substring(11).trim());
+                    } else if (mensagem.equalsIgnoreCase("/usuarios")) {
+                        listarUsuariosOnline();
                     } else {
                         enviarMensagem(mensagem);
                     }
@@ -89,6 +93,12 @@ public class ServidorChat {
             } catch (IOException e) {
                 System.out.println("Usuário " + nomeCliente + " desconectado do servidor.");
             } finally {
+
+                // Remover o usuário ao desconectar
+                synchronized (usuarios) {
+                    usuarios.remove(out);
+                }
+
                 sairDaSala();
                 try {
                     if (!socket.isClosed()) {socket.close();}
@@ -327,6 +337,52 @@ public class ServidorChat {
                 System.out.println("ERRO AO FECHAR O SOCKET: " + e.getMessage());
             }
             System.out.println("Usuário " + nomeCliente + " desconectado.");
+        }
+      
+        /**
+         * Lista todos os usuários conectados na sala atual.
+         */
+        private synchronized void listarUsuariosOnline() {
+            if (!sala.isEmpty()) {
+                Set<PrintWriter> membrosSala = salasChat.get(sala);
+                out.println("\n--- Usuários Online na: " + sala);
+
+                if (membrosSala != null && !membrosSala.isEmpty()) {
+                    for (PrintWriter writer : membrosSala) {
+                        // Verifique se o nome do usuário está disponível
+                        String nomeUsuario;
+                        synchronized (usuarios) {
+                            nomeUsuario = usuarios.get(writer); // Obtém o nome do usuário a partir do PrintWriter
+                        }
+                        System.out.println("Enviando para: " + writer);
+                        if (nomeUsuario != null) {
+                            out.println("- " + nomeUsuario);
+                        } else {
+                            System.out.println("Nome de usuário não encontrado para o PrintWriter: " + writer);
+                        }
+                    }
+                } else {
+                    out.println("Nenhum usuário conectado na sala.");
+                }
+                out.println("-------------------------------");
+            } else {
+                out.println("Você não está em uma sala. Use /join <nome_sala> para entrar em uma.");
+            }
+        }
+
+        /** 
+         * Exibe a lista de comandos disponíveis para o usuário.
+         */
+        private synchronized void mostrarComandos() {
+            out.println("Comandos disponíveis:");
+            out.println("- /help (exibe o menu de comandos)");
+            out.println("- /join <nome_sala> (permite entrar em uma sala)");
+            out.println("- /sair (sai de uma sala)");
+            out.println("- /desconectar (sai do servidor)");
+            out.println("- /salas (lista as salas existentes no servidor)");
+            out.println("- /usuarios (exibe os usuários online dentro de uma sala)");
+            out.println("- /pesquisar <mensagem> (exibe as mensagens correspondentes na sala)");
+            out.println("- @nomeUsuário <mensagem> (envia a mensagem somente para um determinado usuário)\n");
         }
     }
 }
