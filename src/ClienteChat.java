@@ -46,7 +46,11 @@ public class ClienteChat {
                     break;
                 }
 
-                out.println(mensagem);
+                if (mensagem.equalsIgnoreCase("/online")) {
+                    out.println("/online"); // Envia o comando para listar usuários online
+                } else {
+                    out.println(mensagem);
+                }
             }
         });
 
@@ -58,6 +62,8 @@ public class ClienteChat {
                     if (mensagem.contains("[Sistema] Desconectando do servidor...")) {
                         System.out.println(ANSI_GREEN + "Desconectado do servidor com sucesso." + ANSI_RESET);
                         break; // Sai do loop e permite que a thread seja finalizada
+                    } else if (mensagem.contains("[Sistema] Usuários online:")) {
+                        System.out.println(ANSI_YELLOW + mensagem + ANSI_RESET); // Exibe a lista de usuários online
                     } else if (mensagem.contains("[Sistema]")) {
                         System.out.println(ANSI_GREEN + mensagem + ANSI_RESET);
                     } else if (mensagem.contains("[Erro]")) {
