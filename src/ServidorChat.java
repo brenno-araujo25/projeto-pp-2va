@@ -5,57 +5,66 @@ import java.util.concurrent.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Classe principal do servidor de chat.
+ * Gerencia as conexões dos clientes e as salas de chat.
+ */
 public class ServidorChat {
-    private static final int PORTA = 5000;
-    private static final int MAX_THREADS = 100;
-    private static final String HISTORICO_DIR = "./HistoricoSalas"; // Caminho da pasta para armazenar logs
-    private static final Map<String, Set<PrintWriter>> salasChat = new ConcurrentHashMap<>(); // ConcurrentHashMap garante que as operações sejam thread safe
+    private static final int PORTA = 5000; // Porta onde o servidor escuta conexões
+    private static final int MAX_THREADS = 100; // Número máximo de threads simultâneas
+    private static final String HISTORICO_DIR = "./HistoricoSalas"; // Caminho para o diretório de histórico de salas
+    private static final Map<String, Set<PrintWriter>> salasChat = new ConcurrentHashMap<>(); // Mapa de salas e seus membros
+    private static final Map<PrintWriter, String> usuarios = new ConcurrentHashMap<>(); // Mapa de usuários e suas saídas
 
     public static void main(String[] args) throws Exception {
-        // Criar a pasta de histórico, se ela não existir
+        // Cria o diretório para armazenar o histórico, se não existir
         File diretorioHistorico = new File(HISTORICO_DIR);
         if (!diretorioHistorico.exists()) {
-            diretorioHistorico.mkdirs(); // Cria a pasta e seus diretórios pai se necessário
+            diretorioHistorico.mkdirs(); // Cria o diretório e seus pais se necessário
         }
 
         System.out.println("Servidor rodando na porta " + PORTA + "...");
 
-        // cria o pool de threads para que o sistema atenda até 100 conexões simultâneas
+        // Cria o pool de threads para gerenciar até 100 conexões simultâneas
         ExecutorService pool = Executors.newFixedThreadPool(MAX_THREADS);
-        try (ServerSocket listener = new ServerSocket(PORTA)) { // cria um socket que espera conexões na porta 5000
+        try (ServerSocket listener = new ServerSocket(PORTA)) { // Cria um socket para escutar conexões na porta 5000
             while (true) {
-                pool.execute(new Handler(listener.accept())); // o servidor cria um Handler para lidar com a conexão do cliente em uma thread
+                pool.execute(new Handler(listener.accept())); // Cria um Handler para cada conexão recebida
             }
         }
     }
 
-    // classe interna para gerenciar as conexões dos clientes
+    /**
+     * Classe interna para gerenciar a comunicação com os clientes.
+     */
     private static class Handler implements Runnable {
-        private Socket socket;      // socket do cliente, usado para se comunicar com ele
-        private PrintWriter out;    // envia mensagens ao cliente
-        private BufferedReader in;  // lê as mensagens do cliente
-        private String sala = "";   // sala que o cliente está
-        private String nomeCliente; // armazena o nome do cliente
-        private File historicoDaSala;   // arquivo onde as mensagens da sala serão salvas
+        private Socket socket; // Socket do cliente
+        private PrintWriter out; // Envia mensagens ao cliente
+        private BufferedReader in; // Lê mensagens do cliente
+        private String sala = ""; // Sala atual do cliente
+        private String nomeCliente; // Nome do cliente
+        private File historicoDaSala; // Arquivo para armazenar o histórico de mensagens da sala
 
         public Handler(Socket socket) {
             this.socket = socket;
         }
 
         /**
-         * Executa o fluxo de comunicação do cliente com o servidor.
-         * Lê o nome do cliente, permite entrar em salas e envia/recebe mensagens.
+         * Gerencia a comunicação com o cliente, processando comandos e mensagens.
          */
         public void run() {
             try {
-                // inicializando os objetos de comunicação com o cliente
                 out = new PrintWriter(socket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
+                // Solicita o nome do cliente
                 out.println("Bem vindo! Informe seu nome:");
                 nomeCliente = in.readLine();
                 System.out.println("Usuário " + nomeCliente + " conectado no servidor.");
                 out.println("Bem vindo, " + nomeCliente + "! Use /join <nome_sala> para entrar em uma sala. (Use /help para ver comandos)");
+
+                // Adiciona o usuário ao mapa de usuários
+                usuarios.put(out, nomeCliente);
 
                 String mensagem;
                 while ((mensagem = in.readLine()) != null) {
@@ -69,7 +78,7 @@ public class ServidorChat {
                         desconectarCliente();
                     } else if (mensagem.equalsIgnoreCase("/salas")) {
                         listarSalas();
-                    } else if (mensagem.startsWith("@")){
+                    } else if (mensagem.startsWith("@")) {
                         enviarMensagemPrivada(mensagem);
                     } else if (mensagem.startsWith("/pesquisar ")) {
                         pesquisarMensagem(mensagem.substring(11).trim());
@@ -86,12 +95,13 @@ public class ServidorChat {
                 } catch (IOException e) {
                     System.out.println("ERRO AO FECHAR O SOCKET: " + e.getMessage());
                 }
+                usuarios.remove(out); // Remove o usuário do mapa ao desconectar
             }
         }
 
         /**
-         * Entra em uma sala de chat.
-         * Se a sala não existir, cria uma nova.
+         * Permite ao cliente entrar em uma sala de chat.
+         * Se a sala não existir, é criada uma nova.
          * @param nomeSala O nome da sala em que o cliente deseja entrar
          */
         private synchronized void entrarEmSala(String nomeSala) {
@@ -108,7 +118,7 @@ public class ServidorChat {
 
             if (!historicoDaSala.exists()) {
                 try {
-                    historicoDaSala.createNewFile(); // Cria o arquivo
+                    historicoDaSala.createNewFile(); // Cria o arquivo se não existir
                 } catch (IOException e){
                     e.printStackTrace();
                 }
@@ -126,8 +136,8 @@ public class ServidorChat {
         }
 
         /**
-         * Sai da sala de chat atual, se o cliente estiver em uma.
-         * Remove o cliente da lista de membros da sala.
+         * Permite ao cliente sair da sala atual.
+         * Remove o cliente da lista de membros da sala e exclui a sala se estiver vazia.
          */
         private synchronized void sairDaSala() {
             if (!sala.isEmpty()) {
@@ -226,125 +236,93 @@ public class ServidorChat {
             }
         }
 
-        // Método para desconectar o usuário
-        private synchronized void desconectarCliente() throws IOException {
-            try {
-                if(!sala.isEmpty()) { // Verifica se o usuário está dentro de uma sala
-                    sairDaSala(); // Remove o cliente da sala
-                }
-
-                if (out != null && in != null) {
-                    out.println("[Sistema] Desconectando do servidor..."); // Notifica o cliente da desconexão
-                    out.flush();
-                    try {
-                        Thread.sleep(100); // Aguarda para garantir a entrega da mensagem
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    out.close(); // Fecha o PrintWriter
-                    in.close(); // Fecha o Buffered Reader
-                }
-
-                if (socket != null && !socket.isClosed()) {
-                    socket.close(); // Fecha o socket do cliente, se ainda estiver aberto
-                }
-
-            } catch (IOException e) {
-                System.out.println("Erro ao fechar a conexão: " + e.getMessage());
-                e.printStackTrace();
-            }
-        }
-
-        //Método para listar as salas existentes no servidor
-        private synchronized void listarSalas() throws IOException {
-            //Criar o caminho para pasta de historicoSalas
-            File caminhoHistorico = new File(HISTORICO_DIR);
-            //Verificar se o caminho existe 
-            if(caminhoHistorico.exists() && caminhoHistorico.isDirectory()){
-                File[] historicos = caminhoHistorico.listFiles((hist,name) -> name.endsWith(".txt")); 
-                out.println("\n-------------------------");
-                out.println("Listando Salas!");
-                if (historicos !=null && historicos.length > 0){
-                    out.println("-------------------------");
-                    out.println("Salas existentes: ");
-                    for(File historico: historicos){
-                        //Tirar o .txt
-                        String nome = historico.getName().replace(".txt","");
-                        out.println("- " + nome);
-                    }
-                } else {
-                    out.println("Nenhuma sala existente no servidor.");
-                }
-                out.println("-------------------------");
-            }else{
-                out.println("Caminho para HistoricoSalas invalido!");
-            }
-        }
-
+        /**
+         * Envia uma mensagem privada para um usuário específico.
+         * @param mensagem A mensagem privada a ser enviada
+         */
         private synchronized void enviarMensagemPrivada(String mensagem) {
-            if (!sala.isEmpty()) {
-
+            int index = mensagem.indexOf(" ");
+            if (index != -1) {
+                String destinatario = mensagem.substring(1, index).trim();
+                String mensagemPrivada = mensagem.substring(index + 1).trim();
+                boolean encontrado = false;
+                for (Map.Entry<PrintWriter, String> entry : usuarios.entrySet()) {
+                    if (entry.getValue().equals(destinatario)) {
+                        PrintWriter destinatarioOut = entry.getKey();
+                        destinatarioOut.println("Mensagem privada de " + nomeCliente + ": " + mensagemPrivada);
+                        encontrado = true;
+                        break;
+                    }
+                }
+                if (!encontrado) {
+                    out.println("Usuário " + destinatario + " não encontrado.");
+                }
             } else {
-                out.println("Você não está em uma sala. Use /join <nome_sala> para entrar em uma.");
+                out.println("Formato incorreto para mensagem privada. Use @<nome_usuario> <mensagem>.");
             }
         }
 
         /**
-         /**
-         * pesquisa uma string no histórico de mensagens da sala
-         * @param string a ser pesquisada
+         * Pesquisa mensagens no histórico da sala.
+         * @param termo O termo a ser pesquisado
          */
-        private synchronized void pesquisarMensagem(String string) {
-            // Valida se a sala não está vazia
-            if (!sala.isEmpty()) {
-
-                // Verifica se a string a ser pesquisada foi fornecida
-                if (string == null || string.trim().isEmpty()) {
-                    out.println("Digite uma mensagem a ser pesquisada.");
-                    return; // Sai do método se a string estiver vazia
-                }
-
-                // Valida se o histórico da sala existe
-                if (historicoDaSala.exists()) {
-                    try (BufferedReader br = new BufferedReader(new FileReader(historicoDaSala))) {
-                        String linha;
-                        out.println("\n--- Resultados da Pesquisa ---");
-                        boolean encontrou = false; // Boolean para checar se foram encontrados resultados
-                        while ((linha = br.readLine()) != null) {
-                            if (linha.contains(string)) {
-                                out.println(linha);
-                                encontrou = true;
-                            }
-                        }
-                        if (encontrou == false) {
-                            out.println("Nenhum resultado encontrado para: " + string);
-                        }
-                        out.println("------------------------------");
-                    } catch (IOException e) {
-                        e.printStackTrace();
+        private synchronized void pesquisarMensagem(String termo) {
+            try (BufferedReader br = new BufferedReader(new FileReader(historicoDaSala))) {
+                String linha;
+                boolean encontrou = false;
+                while ((linha = br.readLine()) != null) {
+                    if (linha.contains(termo)) {
+                        out.println(linha);
+                        encontrou = true;
                     }
-                } else {
-                    out.println("Histórico de mensagens não encontrado.");
                 }
-            } else {
-                out.println("Você precisa estar em uma sala para pesquisar uma mensagem.");
+                if (!encontrou) {
+                    out.println("Nenhuma mensagem encontrada contendo o termo: " + termo);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
-
-        /** 
-         * Exibe a lista de comandos disponíveis para o usuário.
+        /**
+         * Exibe a lista de salas de chat disponíveis.
          */
-        private synchronized void mostrarComandos() {
+        private void listarSalas() {
+            if (salasChat.isEmpty()) {
+                out.println("Nenhuma sala de chat disponível.");
+            } else {
+                out.println("Salas disponíveis:");
+                for (String nomeSala : salasChat.keySet()) {
+                    out.println("- " + nomeSala);
+                }
+            }
+        }
+
+        /**
+         * Exibe uma lista de comandos disponíveis para o cliente.
+         */
+        private void mostrarComandos() {
             out.println("Comandos disponíveis:");
-            out.println("- /help (exibe o menu de comandos)");
-            out.println("- /join <nome_sala> (permite entrar em uma sala)");
-            out.println("- /sair (sai de uma sala)");
-            out.println("- /desconectar (sai do servidor)");
-            out.println("- /salas (lista as salas existentes no servidor)");
-            out.println("- /usuários (exibe os usuários online dentro de uma sala)");
-            out.println("- /pesquisar <mensagem> (exibe as mensagens correspondentes na sala)");
-            out.println("- @nomeUsuário <mensagem> (envia a mensagem somente para um determinado usuário)\n");
+            out.println("/join <nome_sala> - Entrar em uma sala de chat");
+            out.println("/sair - Sair da sala atual");
+            out.println("/desconectar - Desconectar do servidor");
+            out.println("/salas - Listar salas disponíveis");
+            out.println("/pesquisar <termo> - Pesquisar mensagens no histórico da sala");
+            out.println("@<nome_usuario> <mensagem> - Enviar mensagem privada para um usuário");
+        }
+
+        /**
+         * Desconecta o cliente do servidor e limpa recursos.
+         */
+        private void desconectarCliente() {
+            out.println("Desconectando...");
+            sairDaSala();
+            try {
+                if (!socket.isClosed()) {socket.close();}
+            } catch (IOException e) {
+                System.out.println("ERRO AO FECHAR O SOCKET: " + e.getMessage());
+            }
+            System.out.println("Usuário " + nomeCliente + " desconectado.");
         }
     }
 }
