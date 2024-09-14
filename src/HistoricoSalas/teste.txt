@@ -16,3 +16,9 @@ Usuário Camis saiu da sala.
 Usuário Cassia saiu da sala.
 Usuário Camis entrou na sala.
 Usuário Camis saiu da sala.
+[14-09-2024 14:56] Usuário Camis entrou na sala.
+[14-09-2024 14:58] Usuário Carol entrou na sala.
+[14-09-2024 14:58] Usuário Carol saiu da sala.
+[14-09-2024 14:59] Camis: /deconectar
+[14-09-2024 14:59] Camis: 
+[14-09-2024 14:59] Usuário Camis saiu da sala.
