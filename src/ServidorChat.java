@@ -313,19 +313,6 @@ public class ServidorChat {
         }
 
         /**
-         * Exibe uma lista de comandos disponíveis para o cliente.
-         */
-        private void mostrarComandos() {
-            out.println("Comandos disponíveis:");
-            out.println("/join <nome_sala> - Entrar em uma sala de chat");
-            out.println("/sair - Sair da sala atual");
-            out.println("/desconectar - Desconectar do servidor");
-            out.println("/salas - Listar salas disponíveis");
-            out.println("/pesquisar <termo> - Pesquisar mensagens no histórico da sala");
-            out.println("@<nome_usuario> <mensagem> - Enviar mensagem privada para um usuário");
-        }
-
-        /**
          * Desconecta o cliente do servidor e limpa recursos.
          */
         private void desconectarCliente() {

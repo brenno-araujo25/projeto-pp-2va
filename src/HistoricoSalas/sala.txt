@@ -1,0 +1,2 @@
+[14-09-2024 14:13] Usuário Brenno entrou na sala.
+[14-09-2024 14:13] Usuário Brenno saiu da sala.
