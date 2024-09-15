@@ -16,12 +16,38 @@ public class ServidorChat {
     private static final Map<String, Set<PrintWriter>> salasChat = new ConcurrentHashMap<>(); // Mapa de salas e seus membros
     private static final Map<PrintWriter, String> usuarios = new ConcurrentHashMap<>(); // Mapa de usuários e suas saídas
 
+
+       /**
+         * Inicializa as salas a partir do historico de salas
+         */
+        private static void inicializarSalasHistorico(){
+            //Pegar a lista de nomes dos arquivos de historicoSala
+            File historicoSalas = new File(HISTORICO_DIR);
+            File[] salasExistentes= historicoSalas.listFiles((hist, name) -> name.endsWith(".txt"));
+
+            //Se existir salas no historico
+            if(salasExistentes != null){
+                //Pegar os nomes delas e adicionar no map de salasChat
+                for(File sala: salasExistentes){
+                    String nome = sala.getName().replace(".txt", "");
+                    salasChat.putIfAbsent(nome, ConcurrentHashMap.newKeySet());
+                    System.out.println("Sala '" + nome + "' inicializada por meio do historico!");
+                }
+                System.err.println();
+            } else{
+                System.out.println("Numhum historico de sala encontrado!\n");
+            }
+        }
+
     public static void main(String[] args) throws Exception {
         // Cria o diretório para armazenar o histórico, se não existir
         File diretorioHistorico = new File(HISTORICO_DIR);
         if (!diretorioHistorico.exists()) {
             diretorioHistorico.mkdirs(); // Cria o diretório e seus pais se necessário
         }
+
+        //Inicializar as salas do historico se houver
+        inicializarSalasHistorico();
 
         System.out.println("Servidor rodando na porta " + PORTA + "...");
 
