@@ -35,7 +35,7 @@ public class ClienteChat {
                         Thread.sleep(150); // Aguarda para garantir que a mensagem de desconexão foi enviada
 
                         if (socket != null && !socket.isClosed()) {
-                            socket.close(); // Fecha o socket após a mensagem ser enviada
+                            socket.close(); // Fecha o socket, após a mensagem ser enviada
                         }
                         if (scanner != null) {
                             scanner.close(); // Fecha o scanner
@@ -44,10 +44,6 @@ public class ClienteChat {
                         System.out.println(ANSI_RED + "Erro ao fechar a conexão: " + e.getMessage() + ANSI_RESET);
                     }
                     break;
-                }
-
-                if (mensagem.equalsIgnoreCase("/online")) {
-                    out.println("/online"); // Envia o comando para listar usuários online
                 } else {
                     out.println(mensagem);
                 }
@@ -62,8 +58,6 @@ public class ClienteChat {
                     if (mensagem.contains("[Sistema] Desconectando do servidor...")) {
                         System.out.println(ANSI_GREEN + "Desconectado do servidor com sucesso." + ANSI_RESET);
                         break; // Sai do loop e permite que a thread seja finalizada
-                    } else if (mensagem.contains("[Sistema] Usuários online:")) {
-                        System.out.println(ANSI_YELLOW + mensagem + ANSI_RESET); // Exibe a lista de usuários online
                     } else if (mensagem.contains("[Sistema]")) {
                         System.out.println(ANSI_GREEN + mensagem + ANSI_RESET);
                     } else if (mensagem.contains("[Erro]")) {
