@@ -16,28 +16,27 @@ public class ServidorChat {
     private static final Map<String, Set<PrintWriter>> salasChat = new ConcurrentHashMap<>(); // Mapa de salas e seus membros
     private static final Map<PrintWriter, String> usuarios = new ConcurrentHashMap<>(); // Mapa de usuários e suas saídas
 
+    /**
+     * Inicializa as salas a partir do historico de salas
+     */
+    private static void inicializarSalasHistorico() {
+        //Pegar a lista de nomes dos arquivos de historicoSala
+        File historicoSalas = new File(HISTORICO_DIR);
+        File[] salasExistentes = historicoSalas.listFiles((hist, name) -> name.endsWith(".txt"));
 
-       /**
-         * Inicializa as salas a partir do historico de salas
-         */
-        private static void inicializarSalasHistorico(){
-            //Pegar a lista de nomes dos arquivos de historicoSala
-            File historicoSalas = new File(HISTORICO_DIR);
-            File[] salasExistentes= historicoSalas.listFiles((hist, name) -> name.endsWith(".txt"));
-
-            //Se existir salas no historico
-            if(salasExistentes != null){
-                //Pegar os nomes delas e adicionar no map de salasChat
-                for(File sala: salasExistentes){
-                    String nome = sala.getName().replace(".txt", "");
-                    salasChat.putIfAbsent(nome, ConcurrentHashMap.newKeySet());
-                    System.out.println("Sala '" + nome + "' inicializada por meio do historico!");
-                }
-                System.err.println();
-            } else{
-                System.out.println("Numhum historico de sala encontrado!\n");
+        // Se existir salas no historico
+        if(salasExistentes != null) {
+            // Pegar os nomes delas e adicionar no map de salasChat
+            for(File sala: salasExistentes){
+                String nome = sala.getName().replace(".txt", "");
+                salasChat.putIfAbsent(nome, ConcurrentHashMap.newKeySet());
+                System.out.println("Sala '" + nome + "' inicializada por meio do historico.");
             }
+            System.err.println();
+        } else {
+            System.out.println("Nunhum historico de sala encontrado.\n");
         }
+    }
 
     public static void main(String[] args) throws Exception {
         // Cria o diretório para armazenar o histórico, se não existir
@@ -46,10 +45,10 @@ public class ServidorChat {
             diretorioHistorico.mkdirs(); // Cria o diretório e seus pais se necessário
         }
 
+        System.out.println("Servidor rodando na porta " + PORTA + "...");
+
         //Inicializar as salas do historico se houver
         inicializarSalasHistorico();
-
-        System.out.println("Servidor rodando na porta " + PORTA + "...");
 
         // Cria o pool de threads para gerenciar até 100 conexões simultâneas
         ExecutorService pool = Executors.newFixedThreadPool(MAX_THREADS);
@@ -125,13 +124,12 @@ public class ServidorChat {
                     usuarios.remove(out);
                 }
 
-                sairDaSala();
+                if (!sala.isEmpty()) { sairDaSala(); } // Remove da sala, caso ainda esteja em uma
                 try {
                     if (!socket.isClosed()) {socket.close();}
                 } catch (IOException e) {
                     System.out.println("ERRO AO FECHAR O SOCKET: " + e.getMessage());
                 }
-                usuarios.remove(out); // Remove o usuário do mapa ao desconectar
             }
         }
 
@@ -290,6 +288,7 @@ public class ServidorChat {
                     if (entry.getValue().equals(destinatario) && clientesNaSala.contains(entry.getKey())) { // checa se usuário é o destinatário e se está na mesma sala
                         PrintWriter destinatarioOut = entry.getKey();
                         destinatarioOut.println("Mensagem privada de " + nomeCliente + ": " + mensagemPrivada);
+                        System.out.println("Usuário " + nomeCliente + " enviou mensagem privada para o usuário " + destinatario);
                         encontrado = true;
                         break;
                     }
@@ -304,30 +303,48 @@ public class ServidorChat {
 
         /**
          * Pesquisa mensagens no histórico da sala.
-         * @param termo O termo a ser pesquisado
+         * @param string O termo a ser pesquisado
          */
-        private synchronized void pesquisarMensagem(String termo) {
-            try (BufferedReader br = new BufferedReader(new FileReader(historicoDaSala))) {
-                String linha;
-                boolean encontrou = false;
-                while ((linha = br.readLine()) != null) {
-                    if (linha.contains(termo)) {
-                        out.println(linha);
-                        encontrou = true;
+        private synchronized void pesquisarMensagem(String string) {
+            // Valida se a sala não está vazia
+            if (!sala.isEmpty()) {
+                // Verifica se a string a ser pesquisada foi fornecida
+                if (string == null || string.trim().isEmpty()) {
+                    out.println("Digite uma mensagem a ser pesquisada.");
+                    return; // Sai do método se a string estiver vazia
+                }
+
+                // Valida se o histórico da sala existe
+                if (historicoDaSala.exists()) {
+                    try (BufferedReader br = new BufferedReader(new FileReader(historicoDaSala))) {
+                        String linha;
+                        out.println("\n--- Resultados da Pesquisa ---");
+                        boolean encontrou = false; // Flag para checar se encontrou resultados
+                        while ((linha = br.readLine()) != null) {
+                            if (linha.contains(string)) {
+                                out.println(linha);
+                                encontrou = true; // Marca a flag como true, caso encontre a mensagem
+                            }
+                        }
+                        if (!encontrou) {
+                            out.println("Nenhum resultado encontrado para: " + string);
+                        }
+                        out.println("------------------------------");
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
+                } else {
+                    out.println("Histórico de mensagens não encontrado.");
                 }
-                if (!encontrou) {
-                    out.println("Nenhuma mensagem encontrada contendo o termo: " + termo);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            } else {
+                out.println("Você precisa estar em uma sala para pesquisar a mensagem.");
             }
         }
 
         /**
          * Exibe a lista de salas de chat disponíveis.
          */
-        private void listarSalas() {
+        private synchronized void listarSalas() {
             if (salasChat.isEmpty()) {
                 out.println("Nenhuma sala de chat disponível.");
             } else {
@@ -341,15 +358,38 @@ public class ServidorChat {
         /**
          * Desconecta o cliente do servidor e limpa recursos.
          */
-        private void desconectarCliente() {
-            out.println("Desconectando...");
-            sairDaSala();
+        private synchronized void desconectarCliente() throws IOException {
+            final String ANSI_RESET = "\u001B[0m";
+            final String ANSI_RED = "\u001B[31m";
+
             try {
-                if (!socket.isClosed()) {socket.close();}
+                if(!sala.isEmpty()) { // Verifica se o usuário está em uma sala
+                    sairDaSala(); // Remove o cliente da sala
+                }
+
+                if (out != null) {
+                    out.println("[Sistema] Desconectando do servidor..."); // Notifica o cliente da desconexão
+                    out.flush();
+                    try {
+                        Thread.sleep(100); // Aguarda para garantir a entrega da mensagem
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    out.close(); // Fecha o PrintWriter
+                }
+
+                if (in != null) {
+                    in.close();
+                }
+
+                if (socket != null && !socket.isClosed()) {
+                    socket.close(); // Fecha o socket do cliente, se ainda estiver aberto
+                }
+
             } catch (IOException e) {
-                System.out.println("ERRO AO FECHAR O SOCKET: " + e.getMessage());
+                System.out.println(ANSI_RED + "Erro ao fechar a conexão: " + e.getMessage() + ANSI_RESET);
+                e.printStackTrace();
             }
-            System.out.println("Usuário " + nomeCliente + " desconectado.");
         }
       
         /**
@@ -358,7 +398,7 @@ public class ServidorChat {
         private synchronized void listarUsuariosOnline() {
             if (!sala.isEmpty()) {
                 Set<PrintWriter> membrosSala = salasChat.get(sala);
-                out.println("\n--- Usuários Online na: " + sala);
+                out.println("\n-- Usuários Online na: " + sala + " --");
 
                 if (membrosSala != null && !membrosSala.isEmpty()) {
                     for (PrintWriter writer : membrosSala) {
@@ -367,9 +407,12 @@ public class ServidorChat {
                         synchronized (usuarios) {
                             nomeUsuario = usuarios.get(writer); // Obtém o nome do usuário a partir do PrintWriter
                         }
-                        System.out.println("Enviando para: " + writer);
                         if (nomeUsuario != null) {
-                            out.println("- " + nomeUsuario);
+                            if (writer == out) { // Verifica se o PrintWriter é o mesmo do cliente que chamou o método
+                                out.println("- " + nomeUsuario + " (você)"); // Adiciona o (você), depois do nome
+                            } else {
+                                out.println("- " + nomeUsuario); // Imprime o resto dos usuários
+                            }
                         } else {
                             System.out.println("Nome de usuário não encontrado para o PrintWriter: " + writer);
                         }
