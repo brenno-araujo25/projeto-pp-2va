@@ -36,7 +36,8 @@ Você pode executar múltiplos clientes para simular conversas entre diferentes 
 ## Detalhes sobre o projeto
 
 ### O que é modelado como thread/co-rotina
-No projeto, cada cliente que se conecta ao servidor de chat é modelado como uma **thread** separada. Isso permite que o servidor atenda a múltiplos clientes simultaneamente, gerenciando a comunicação entre eles sem bloqueio.
+- No projeto, cada cliente que se conecta ao servidor de chat é modelado como uma **thread** separada. Isso permite que o servidor atenda a múltiplos clientes simultaneamente, gerenciando a comunicação entre eles sem bloqueio.
+- Cada cliente possui duas **threads** separadas: uma para enviar mensagens e outra para receber mensagens. Isso garante que o cliente possa realizar ambas as operações de forma independente e simultânea.
 
 ### Recursos compartilhados
 Os principais recursos compartilhados no projeto são:
